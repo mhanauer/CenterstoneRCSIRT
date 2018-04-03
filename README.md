@@ -45,19 +45,23 @@ We have established unidimensionality with CFA.  Now we are doing IRT.  Need to 
 
 ```{r}
 itemsOnlyIRT = itemsOnly[c("V33", "V32", "V27", "V31", "V7", "V29", "V4", "V15", "V21", "V35")]
+itemsOnlyIRT =rename(itemsOnlyIRT, replace = c("V33" = "Item1", "V32" = "Item2", "V27" = "Item3", "V31"="Item4", "V7"="Item5", "V29"="Item6", "V4"="Item7", "V15"="Item8", "V21"="Item9", "V35"="Item10"))
 
 descript(itemsOnlyIRT)
+#fa.parallel(itemsOnlyIRT, fa = "fa")
 
 
 fitOrd1 = grm(data = itemsOnlyIRT, constrained = TRUE, Hessian  = TRUE)
 fitOrd2 = grm(data = itemsOnlyIRT, Hessian  = TRUE)
 summary(fitOrd2)
+
 ```
 Now we can do some additional model checking here
 ```{r}
 margins(fitOrd2)
 margins(fitOrd2, type = "three")
 information(fitOrd2, c(-4, 4))
+
 anova(fitOrd1, fitOrd2)
 ```
 Try plots here just for fun
@@ -69,19 +73,51 @@ par(mfrow = c(2, 2))
 #Plot all item information functions
 plot(fitOrd2, type = "IIC")
 #Plot just certain information item information is the same for polytomous items see ltm manual
-plot(fitOrd2, items = c(1:2), type = "IIC")
+plot(fitOrd2, items = c(5:7), type = "IIC")
 
 # Plot ICC's for each response category just do one at a time easier
 plot(fitOrd2, items = 3, type = "OCCu")
+
+vals <- plot(fitOrd2, type = "IIC", items = 0, plot = FALSE, zrange = c(-3,3)) 
+
+plot(vals[, "z"], 1 / sqrt(vals[, "test.info"]), type = "l", lwd = 2, xlab = "Ability", ylab = "Standard Error", main = "Standard Error of Measurement")
 ```
-Try Dif just for fun
+Dif for gender.  
 ```{r}
+itemsOnly$G1..Gender. = ifelse(itemsOnly$G1..Gender. == 3, NA, itemsOnly$G1..Gender.)
 Gender = itemsOnly$G1..Gender.
 # Get rid of small category
+
 Resp = itemsOnly[c("V33", "V32", "V27", "V31", "V7", "V29", "V4", "V15", "V21", "V35")]
-genderDIF = lordif(Resp, Age, criterion = "Chisqr", alpha = .01, minCell = 5)
+Resp =rename(Resp, replace = c("V33" = "Item1", "V32" = "Item2", "V27" = "Item3", "V31"="Item4", "V7"="Item5", "V29"="Item6", "V4"="Item7", "V15"="Item8", "V21"="Item9", "V35"="Item10"))
+genderDIF = lordif(Resp, Gender, criterion = "Chisqr", alpha = .01, minCell = 5)
 summary(genderDIF)
 plot(genderDIF)
+
+```
+Now try Dif with race
+```{r}
+# Let's try with race
+itemsOnly$G3..Race. = ifelse(itemsOnly$G3..Race. > 3, 4, itemsOnly$G3..Race.)
+Race = itemsOnly$G3..Race.
+# Get rid of small category
+Resp = itemsOnly[c("V33", "V32", "V27", "V31", "V7", "V29", "V4", "V15", "V21", "V35")]
+Resp =rename(Resp, replace = c("V33" = "Item1", "V32" = "Item2", "V27" = "Item3", "V31"="Item4", "V7"="Item5", "V29"="Item6", "V4"="Item7", "V15"="Item8", "V21"="Item9", "V35"="Item10"))
+
+raceDIF = lordif(Resp, Race, criterion = "Chisqr", alpha = .01, minCell = 5)
+summary(raceDIF)
+plot(raceDIF)
+```
+Now get dif with sexual orientation
+```{r}
+itemsOnly$G1a..Sexual.Orientation. = ifelse(itemsOnly$G1a..Sexual.Orientation.>1, 2,itemsOnly$G1a..Sexual.Orientation.)
+sexOrien = itemsOnly$G1a..Sexual.Orientation.
+Resp = itemsOnly[c("V33", "V32", "V27", "V31", "V7", "V29", "V4", "V15", "V21", "V35")]
+Resp =rename(Resp, replace = c("V33" = "Item1", "V32" = "Item2", "V27" = "Item3", "V31"="Item4", "V7"="Item5", "V29"="Item6", "V4"="Item7", "V15"="Item8", "V21"="Item9", "V35"="Item10"))
+sexOrienDIF = lordif(Resp, sexOrien, criterion = "Chisqr", alpha = .01, minCell = 5)
+summary(sexOrienDIF)
+plot(sexOrienDIF)
+
 ```
 
 
